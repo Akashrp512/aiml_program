@@ -1,0 +1,803 @@
+PROGRAM 1: Implement A* Search algorithm.
+
+CODE:
+
+def aStarAlgo(start_node, stop_node):
+    
+
+    open_set = set(start_node) # {A}, len{open_set}=1
+    closed_set = set()
+    g = {} # store the distance from starting node
+    parents = {}
+    g[start_node] = 0
+    parents[start_node] = start_node # parents['A']='A"
+
+    while len(open_set) > 0 :
+        n = None
+        
+        for v in open_set: # v='B'/'F'
+            if n == None or g[v] + heuristic(v) < g[n] + heuristic(n):
+                n = v # n='A'
+
+        if n == stop_node or Graph_nodes[n] == None:
+            pass
+        else:
+            for (m, weight) in get_neighbors(n):
+             # nodes 'm' not in first and last set are added to first
+             # n is set its parent
+                if m not in open_set and m not in closed_set:
+                    open_set.add(m)      # m=B weight=6 {'F','B','A'} len{open_set}=2
+                    parents[m] = n       # parents={'A':A,'B':A} len{parent}=2
+                    g[m] = g[n] + weight # g={'A':0,'B':6, 'F':3} len{g}=2
+
+
+            #for each node m,compare its distance from start i.e g(m) to the 
+            #from start through n node
+                else:
+                    if g[m] > g[n] + weight:
+                    #update g(m)
+                        g[m] = g[n] + weight
+                    #change parent of m to n
+                        parents[m] = n
+
+                    #if m in closed set,remove and add to open
+                        if m in closed_set:
+                            closed_set.remove(m)
+                            open_set.add(m)
+
+        if n == None:
+            print('Path does not exist!')
+            return None
+
+        # if the current node is the stop_node
+        # then we begin reconstructin the path from it to the start_node
+        if n == stop_node:
+            path = []
+
+            while parents[n] != n:
+                path.append(n)
+                n = parents[n]
+
+            path.append(start_node)
+
+            path.reverse()
+
+            print('Path found: {}'.format(path))
+            return path
+
+
+        # remove n from the open_list, and add it to closed_list
+        # because all of his neighbors were inspected
+        open_set.remove(n)# {'F','B'} len=2
+        closed_set.add(n) #{A} len=1
+
+    print('Path does not exist!')
+    return None
+
+#define fuction to return neighbor and its distance
+#from the passed node
+def get_neighbors(v):
+    if v in Graph_nodes:
+        return Graph_nodes[v]
+    else:
+        return None
+#for simplicity we ll consider heuristic distances given
+#and this function returns heuristic distance for all nodes
+ 
+def heuristic(n):
+    H_dist = {
+        'A': 10,
+        'B': 8,
+        'C': 5,
+        'D': 7,
+        'E': 3,
+        'F': 6,
+        'G': 5,
+        'H': 3,
+        'I': 1,
+        'J': 0
+    }
+
+    return H_dist[n]
+
+#Describe your graph here
+Graph_nodes = {
+    
+    'A': [('B', 6), ('F', 3)],
+    'B': [('C', 3), ('D', 2)],
+    'C': [('D', 1), ('E', 5)],
+    'D': [('C', 1), ('E', 8)],
+    'E': [('I', 5), ('J', 5)],
+    'F': [('G', 1),('H', 7)] ,
+    'G': [('I', 3)],
+    'H': [('I', 2)],
+    'I': [('E', 5), ('J', 3)],
+
+}
+aStarAlgo('A', 'J')
+
+OUTPUT: 
+Path found: ['A', 'F', 'G', 'I', 'J']
+
+
+                 ......................................................................................................................
+
+
+Program 2: Implement AO* Search algorithm.
+
+CODE:
+class Graph:
+    def __init__(self, graph, heuristicNodeList, startNode):
+  #instantiate graph object with graph topology, heuristic values, start node
+        
+        self.graph = graph
+        self.H=heuristicNodeList
+        self.start=startNode
+        self.parent={}
+        self.status={}
+        self.solutionGraph={}
+     
+    def applyAOStar(self):        
+ # starts a recursive AO* algorithm
+        self.aoStar(self.start, False)
+ 
+    def getNeighbors(self, v):     
+# gets the Neighbors of a given node
+        return self.graph.get(v,'')
+    
+    def getStatus(self,v):         
+# return the status of a given node
+        return self.status.get(v,0)
+    
+    def setStatus(self,v, val):   
+ # set the status of a given node
+        self.status[v]=val
+    
+    def getHeuristicNodeValue(self, n):
+        return self.H.get(n,0)     
+# always return the heuristic value of a given node
+ 
+    def setHeuristicNodeValue(self, n, value):
+        self.H[n]=value            
+# set the revised heuristic value of a given node 
+        
+    
+    def printSolution(self):
+        print("FOR GRAPH SOLUTION, TRAVERSE THE GRAPH FROM THE START NODE:",self.start)
+        print("------------------------------------------------------------")
+        print(self.solutionGraph)
+        print("------------------------------------------------------------")
+    
+    def computeMinimumCostChildNodes(self, v):  
+# Computes the Minimum Cost of child nodes of a given node v     
+        minimumCost=0
+        costToChildNodeListDict={}
+        costToChildNodeListDict[minimumCost]=[]
+        flag=True
+        for nodeInfoTupleList in self.getNeighbors(v):  
+# iterate over all the set of child node/s
+            cost=0
+            nodeList=[]
+            for c, weight in nodeInfoTupleList:
+                cost=cost+self.getHeuristicNodeValue(c)+weight
+                nodeList.append(c)
+            
+            if flag==True:  
+# initialize Minimum Cost with the cost of first set of child node/s 
+                minimumCost=cost
+                costToChildNodeListDict[minimumCost]=nodeList      
+# set the Minimum Cost child node/s
+                flag=False
+            else:                              
+ # checking the Minimum Cost nodes with the current Minimum Cost   
+                if minimumCost>cost:
+                    minimumCost=cost
+                    costToChildNodeListDict[minimumCost]=nodeList  
+# set the Minimum Cost child node/s
+                
+              
+        return minimumCost, costToChildNodeListDict[minimumCost]  
+ # return Minimum Cost and Minimum Cost child node/s
+ 
+                     
+    
+    def aoStar(self, v, backTracking):     
+# AO* algorithm for a start node and backTracking status flag
+        
+        print("HEURISTIC VALUES  :", self.H)
+        print("SOLUTION GRAPH    :", self.solutionGraph)
+        print("PROCESSING NODE   :", v)
+        print("--------------------------------------------------------------------")
+        
+        if self.getStatus(v) >= 0:       
+ # if status node v >= 0, compute Minimum Cost nodes of v
+            minimumCost, childNodeList = self.computeMinimumCostChildNodes(v)
+            self.setHeuristicNodeValue(v, minimumCost)
+            self.setStatus(v,len(childNodeList))
+            
+            solved=True                   
+# check the Minimum Cost nodes of v are solved   
+            for childNode in childNodeList:
+                self.parent[childNode]=v
+                if self.getStatus(childNode)!=-1:
+                    solved=solved & False
+            
+            if solved==True:            
+ # if the Minimum Cost nodes of v are solved, set the current node status as solved(-1)
+                self.setStatus(v,-1)    
+                self.solutionGraph[v]=childNodeList 
+# update the solution graph with the solved nodes which may be a part of solution  
+            
+            
+            if v!=self.start:          
+ # check the current node is the start node for backtracking the current node value    
+                self.aoStar(self.parent[v], True)   
+# backtracking the current node value with backtracking status set to true
+                
+            if backTracking==False:    
+ # check the current call is not for backtracking 
+                for childNode in childNodeList:  
+ # for each Minimum Cost child node
+                    self.setStatus(childNode,0)   
+# set the status of child node to 0(needs exploration)
+                    self.aoStar(childNode, False)
+ # Minimum Cost child node is further explored with backtracking status as false
+                 
+        
+                                       
+h1 = {'A': 1, 'B': 6, 'C': 2, 'D': 12, 'E': 2, 'F': 1, 'G': 5, 'H': 7, 'I': 7, 'J': 1, 'T': 3}
+graph1 = {
+    'A': [[('B', 1), ('C', 1)], [('D', 1)]],
+    'B': [[('G', 1)], [('H', 1)]],
+    'C': [[('J', 1)]],
+    'D': [[('E', 1), ('F', 1)]],
+    'G': [[('I', 1)]]   
+}
+G1= Graph(graph1, h1, 'A')
+G1.applyAOStar() 
+G1.printSolution()
+ 
+h2 = {'A': 1, 'B': 6, 'C': 12, 'D': 10, 'E': 4, 'F': 4, 'G': 5, 'H': 7}  # Heuristic values of Nodes 
+graph2 = {                                        # Graph of Nodes and Edges 
+    'A': [[('B', 1), ('C', 1)], [('D', 1)]],      # Neighbors of Node 'A', B, C & D with repective weights 
+    'B': [[('G', 1)], [('H', 1)]],                # Neighbors are included in a list of lists
+    'D': [[('E', 1), ('F', 1)]]                   # Each sublist indicate a "OR" node or "AND" nodes
+}
+ 
+G2 = Graph(graph2, h2, 'A')                       # Instantiate Graph object with graph, heuristic values and start Node
+G2.applyAOStar()                                  # Run the AO* algorithm
+G2.printSolution()                                # Print the solution graph as output of the AO* algorithm search
+
+OUTPUT : 
+HEURISTIC VALUES  : {'A': 1, 'B': 6, 'C': 2, 'D': 12, 'E': 2, 'F': 1, 'G': 5, 'H': 7, 'I': 7, 'J': 1, 'T': 3}
+SOLUTION GRAPH    : {}
+PROCESSING NODE   : A
+FOR GRAPH SOLUTION, TRAVERSE THE GRAPH FROM THE START NODE: A
+------------------------------------------------------------
+{'E': [], 'F': [], 'D': ['E', 'F'], 'A': ['D']}
+
+
+
+               ......................................................................................................................
+
+
+
+
+PROGRAM 3: For a given set of training data examples stored in a .CSV file, implement and demonstrate the Candidate-Elimination algorithm to output a description of the set of all hypotheses consistent with the training examples
+
+DATASET:
+
+sky	airtemp	humidity	wind	water	forcast	enjoysport
+sunny	warm	normal	strong	warm	same	yes
+sunny	warm	high	strong	warm	same	yes
+rainy	cold	high	strong	warm	change	no
+sunny	warm	high	strong	cool	change	yes
+
+CODE: 
+import csv
+
+with open(r"C:\Users\91974\Downloads\18CSL76-AIML-Programs-main\18CSL76-AIML-Programs-main\trainingexamples.csv") as f:
+    csv_file = csv.reader(f)
+    data = list(csv_file)
+
+    specific = data[0][:-1]
+    general = [['?' for i in range(len(specific))] for j in range(len(specific))]
+
+    for i in data:
+        if i[-1] == "Yes":
+            for j in range(len(specific)):
+                if i[j] != specific[j]:
+                    specific[j] = "?"
+                    general[j][j] = "?"
+
+        elif i[-1] == "No":
+            for j in range(len(specific)):
+                if i[j] != specific[j]:
+                    general[j][j] = specific[j]
+                else:
+                    general[j][j] = "?"
+
+        print("\nStep " + str(data.index(i)+1) + " of Candidate Elimination Algorithm")
+        print(specific)
+        print(general)
+
+    gh = [] # gh = general Hypothesis
+    for i in general:
+        for j in i:
+            if j != '?':
+                gh.append(i)
+                break
+    print("\nFinal Specific hypothesis:\n", specific)
+    print("\nFinal General hypothesis:\n", gh)
+
+OUTPUT:
+
+Step 1 of Candidate Elimination Algorithm
+['Sunny', 'Warm', 'Normal', 'Strong', 'Warm', 'Same']
+[['?', '?', '?', '?', '?', '?'], ['?', '?', '?', '?', '?', '?'], ['?', '?', '?', '?', '?', '?'], ['?', '?', '?', '?', '?', '?'], ['?', '?', '?', '?', '?', '?'], ['?', '?', '?', '?', '?', '?']]
+
+Step 2 of Candidate Elimination Algorithm
+['Sunny', 'Warm', '?', 'Strong', 'Warm', 'Same']
+[['?', '?', '?', '?', '?', '?'], ['?', '?', '?', '?', '?', '?'], ['?', '?', '?', '?', '?', '?'], ['?', '?', '?', '?', '?', '?'], ['?', '?', '?', '?', '?', '?'], ['?', '?', '?', '?', '?', '?']]
+
+Step 3 of Candidate Elimination Algorithm
+['Sunny', 'Warm', '?', 'Strong', 'Warm', 'Same']
+[['Sunny', '?', '?', '?', '?', '?'], ['?', 'Warm', '?', '?', '?', '?'], ['?', '?', '?', '?', '?', '?'], ['?', '?', '?', '?', '?', '?'], ['?', '?', '?', '?', '?', '?'], ['?', '?', '?', '?', '?', 'Same']]
+
+Step 4 of Candidate Elimination Algorithm
+['Sunny', 'Warm', '?', 'Strong', '?', '?']
+[['Sunny', '?', '?', '?', '?', '?'], ['?', 'Warm', '?', '?', '?', '?'], ['?', '?', '?', '?', '?', '?'], ['?', '?', '?', '?', '?', '?'], ['?', '?', '?', '?', '?', '?'], ['?', '?', '?', '?', '?', '?']]
+
+Final Specific hypothesis:
+ ['Sunny', 'Warm', '?', 'Strong', '?', '?']
+
+Final General hypothesis:
+ [['Sunny', '?', '?', '?', '?', '?'], ['?', 'Warm', '?', '?', '?', '?']]
+
+                    
+
+
+                 ......................................................................................................................
+
+
+
+
+PROGRAM 4: Write a program to demonstrate the working of the decision tree based ID3 algorithm. Use an appropriate data set for building the decision tree and apply this knowledge to classify a new sample
+
+DATASET:
+
+Outlook	Temperature	Humidity	Wind	Target
+sunny	hot	high	weak	no
+sunny	hot	high	strong	no
+overcast	hot	high	weak	yes
+rain	mild	high	weak	yes
+rain	cool	normal	weak	yes
+
+
+CODE: 
+import pandas as pd
+from pprint import pprint
+from sklearn.feature_selection import mutual_info_classif
+from collections import Counter
+
+def id3(df, target_attribute, attribute_names, default_class=None):
+    cnt=Counter(x for x in df[target_attribute])
+    if len(cnt)==1:
+        return next(iter(cnt))
+    
+    elif df.empty or (not attribute_names):
+         return default_class
+
+    else:
+        gainz = mutual_info_classif(df[attribute_names],df[target_attribute],discrete_features=True)
+        index_of_max=gainz.tolist().index(max(gainz))
+        best_attr=attribute_names[index_of_max]
+        tree={best_attr:{}}
+        remaining_attribute_names=[i for i in attribute_names if i!=best_attr]
+        
+        for attr_val, data_subset in df.groupby(best_attr):
+            subtree=id3(data_subset, target_attribute, remaining_attribute_names,default_class)
+            tree[best_attr][attr_val]=subtree
+        
+        return tree
+    
+
+df=pd.read_csv(r"C:\Users\91974\Downloads\18CSL76-AIML-Programs-main\18CSL76-AIML-Programs-main\p-tennis.csv")
+
+attribute_names=df.columns.tolist()
+print("List of attribut name")
+
+attribute_names.remove("PlayTennis")
+
+for colname in df.select_dtypes("object"):
+    df[colname], _ = df[colname].factorize()
+    
+print(df)
+
+tree= id3(df,"PlayTennis", attribute_names)
+print("The tree structure")
+pprint(tree)
+
+OUTPUT :
+List of attribut name
+    Outlook  Temperature  Humidity  Windy  PlayTennis
+0         0            0         0  False           0
+1         0            0         0   True           0
+2         1            0         0  False           1
+3         2            1         0  False           1
+4         2            2         1  False           1
+5         2            2         1   True           0
+6         1            2         1   True           1
+7         0            1         0  False           0
+8         0            2         1  False           1
+9         2            1         1  False           1
+10        0            1         1   True           1
+11        1            1         0   True           1
+12        1            0         1  False           1
+13        2            1         0   True           0
+The tree structure
+{'Outlook': {0: {'Humidity': {0: 0, 1: 1}},
+             1: 1,
+             2: {'Windy': {False: 1, True: 0}}}}
+
+
+
+
+                           ......................................................................................................................
+
+
+
+PROGRAM 5: Build an Artificial Neural Network by implementing the Backpropagation algorithm and test the same using appropriate data sets
+
+CODE: 
+
+import numpy as np
+X = np.array(([2, 9], [1, 5], [3, 6]), dtype=float)
+y = np.array(([92], [86], [89]), dtype=float)
+X = X/np.amax(X,axis=0)      # maximum of X array longitudinally
+y=y/100
+#Sigmoid Function 
+def sigmoid (x):
+    return 1/(1 + np.exp(-x))
+#Derivative of Sigmoid Function 
+def derivatives_sigmoid(x):
+    return x * (1 - x)
+#Variable initialization
+epoch = 5000	             #Setting training iterations 
+lr = 0.1	             #Setting learning rate
+inputlayer_neurons = 2	     #number of features in data set
+hiddenlayer_neurons = 3	     #number of hidden layers neurons
+output_neurons = 1	     #number of neurons at output layer
+#weight and bias initialization 
+wh=np.random.uniform(size=(inputlayer_neurons,hiddenlayer_neurons))
+bh=np.random.uniform(size=(1,hiddenlayer_neurons)) 
+wout=np.random.uniform(size=(hiddenlayer_neurons,output_neurons))
+bout=np.random.uniform(size=(1,output_neurons))
+#draws a random range of numbers uniformly of dim x*y 
+for i in range(epoch):
+    
+#Forward Propogation     
+    hinp1=np.dot(X,wh)
+    hinp=hinp1 + bh
+    hlayer_act = sigmoid(hinp)
+    outinp1=np.dot(hlayer_act,wout) 
+    outinp= outinp1+ bout
+    output = sigmoid(outinp)
+    
+#Backpropagation   
+    EO = y-output
+    outgrad = derivatives_sigmoid(output) 
+    d_output = EO* outgrad
+    EH = d_output.dot(wout.T)
+
+#how much hidden layer wts contributed to error 
+    hiddengrad = derivatives_sigmoid(hlayer_act) 
+    d_hiddenlayer = EH * hiddengrad
+
+# dotproduct of nextlayererror and currentlayerop 
+    wout += hlayer_act.T.dot(d_output) *lr
+    wh += X.T.dot(d_hiddenlayer) *lr
+print("Input: \n" + str(X))
+print("Actual Output: \n" + str(y))
+print("Predicted Output: \n" ,output)
+
+
+OUTPUT :
+Input: 
+[[0.66666667 1.        ]
+ [0.33333333 0.55555556]
+ [1.         0.66666667]]
+Actual Output: 
+[[0.92]
+ [0.86]
+ [0.89]]
+Predicted Output: 
+ [[0.8980954 ]
+ [0.87785105]
+ [0.89360149]]
+
+
+
+
+
+                 ......................................................................................................................
+
+
+
+
+
+
+PROGRAM 6: Write a program to implement the naïve Bayesian classifier for a sample training data set stored as a .CSV file. Compute the accuracy of the classifier, considering few test data sets 
+
+DATASET :
+Outlook	Temperature	Humidity	Wind	Target
+sunny	hot	high	weak	no
+sunny	hot	high	strong	no
+overcast	hot	high	weak	yes
+rain	mild	high	weak	yes
+rain	cool	normal	weak	yes
+
+CODE: 
+# import necessary libraries
+import pandas as pd
+from sklearn import tree
+from sklearn.preprocessing import LabelEncoder
+from sklearn.naive_bayes import GaussianNB
+
+# Load Data from CSV
+data = pd.read_csv(r'C:\Users\91974\Downloads\18CSL76-AIML-Programs-main\18CSL76-AIML-Programs-main\p-tennis.csv')
+print("The first 5 Values of data is :\n", data.head())
+
+# obtain train data and train output
+X = data.iloc[:, :-1]
+print("\nThe First 5 values of the train data is\n", X.head())
+
+y = data.iloc[:, -1]
+print("\nThe First 5 values of train output is\n", y.head())
+
+# convert them in numbers
+le_outlook = LabelEncoder()
+X.Outlook = le_outlook.fit_transform(X.Outlook)
+
+le_Temperature = LabelEncoder()
+X.Temperature = le_Temperature.fit_transform(X.Temperature)
+
+le_Humidity = LabelEncoder()
+X.Humidity = le_Humidity.fit_transform(X.Humidity)
+
+le_Windy = LabelEncoder()
+X.Windy = le_Windy.fit_transform(X.Windy)
+
+print("\nNow the Train output is\n", X.head())
+
+le_PlayTennis = LabelEncoder()
+y = le_PlayTennis.fit_transform(y)
+print("\nNow the Train output is\n",y)
+
+from sklearn.model_selection import train_test_split
+X_train, X_test, y_train, y_test = train_test_split(X,y, test_size = 0.20)
+
+classifier = GaussianNB()
+classifier.fit(X_train, y_train)
+
+from sklearn.metrics import accuracy_score
+print("Accuracy is:", accuracy_score(classifier.predict(X_test), y_test))
+OUTPUT :
+The first 5 Values of data is :
+     Outlook Temperature Humidity  Windy PlayTennis
+0     Sunny         Hot     High  False         No
+1     Sunny         Hot     High   True         No
+2  Overcast         Hot     High  False        Yes
+3     Rainy        Mild     High  False        Yes
+4     Rainy        Cool   Normal  False        Yes
+
+The First 5 values of the train data is
+     Outlook Temperature Humidity  Windy
+0     Sunny         Hot     High  False
+1     Sunny         Hot     High   True
+2  Overcast         Hot     High  False
+3     Rainy        Mild     High  False
+4     Rainy        Cool   Normal  False
+
+The First 5 values of train output is
+ 0     No
+1     No
+2    Yes
+3    Yes
+4    Yes
+Name: PlayTennis, dtype: object
+
+Now the Train output is
+    Outlook  Temperature  Humidity  Windy
+0        2            1         0      0
+1        2            1         0      1
+2        0            1         0      0
+3        1            2         0      0
+4        1            0         1      0
+
+Now the Train output is
+ [0 0 1 1 1 0 1 0 1 1 1 1 1 0]
+Accuracy is: 0.3333333333333333
+
+
+
+           ......................................................................................................................
+
+
+
+
+
+
+PROGRAM 7: : Apply EM algorithm to cluster a set of data stored in a .CSV file. Use the same data set for clustering using k-Means algorithm. Compare the results of these two algorithms and comment on the quality of clustering. You can add Java/Python ML library classes/API in the program.
+
+CODE:
+#	Kmeans 	
+from sklearn import datasets 
+from sklearn import metrics
+from sklearn.cluster import KMeans
+from sklearn.model_selection import train_test_split
+
+iris = datasets.load_iris() 
+print(iris)
+X_train,X_test,y_train,y_test = train_test_split(iris.data,iris.target) 
+model =KMeans(n_clusters=3)
+model.fit(X_train,y_train) 
+model.score
+print('K-Mean: ',metrics.accuracy_score(y_test,model.predict(X_test)))
+
+#-------Expectation and Maximization----------
+from sklearn.mixture import GaussianMixture 
+model2 = GaussianMixture(n_components=3) 
+model2.fit(X_train,y_train)
+model2.score
+print('EM Algorithm:',metrics.accuracy_score(y_test,model2.predict(X_test)))
+
+
+
+
+
+           ......................................................................................................................
+
+
+
+
+
+
+
+PROGRAM 8: Write a program to implement k-Nearest Neighbour algorithm to classify the iris data set. Print both correct and wrong predictions. Java/Python ML library classes can be used for this problem.
+
+CODE :
+from sklearn.model_selection import train_test_split 
+from sklearn.neighbors import KNeighborsClassifier 
+from sklearn import datasets
+iris=datasets.load_iris() 
+print("Iris Data set loaded...")
+x_train, x_test, y_train, y_test = train_test_split(iris.data,iris.target,test_size=0.1)
+#random_state=0
+for i in range(len(iris.target_names)):
+    print("Label", i , "-",str(iris.target_names[i]))
+classifier = KNeighborsClassifier(n_neighbors=5)
+classifier.fit(x_train, y_train)
+y_pred=classifier.predict(x_test)
+print("Results of Classification using K-nn with K=5 ") 
+for r in range(0,len(x_test)):
+    print(" Sample:", str(x_test[r]), " Actual-label:", str(y_test[r])," Predicted-label:", str(y_pred[r]))
+
+    print("Classification Accuracy :" , classifier.score(x_test,y_test));
+
+OUTPUT : 
+Iris Data set loaded...
+Label 0 - setosa
+Label 1 - versicolor
+Label 2 - virginica
+Results of Classification using K-nn with K=5 
+ Sample: [7.2 3.6 6.1 2.5]  Actual-label: 2  Predicted-label: 2
+Classification Accuracy : 1.0
+ Sample: [5.5 3.5 1.3 0.2]  Actual-label: 0  Predicted-label: 0
+Classification Accuracy : 1.0
+ Sample: [6.3 3.3 4.7 1.6]  Actual-label: 1  Predicted-label: 1
+Classification Accuracy : 1.0
+ Sample: [5.1 2.5 3.  1.1]  Actual-label: 1  Predicted-label: 1
+Classification Accuracy : 1.0
+ Sample: [5.5 2.6 4.4 1.2]  Actual-label: 1  Predicted-label: 1
+Classification Accuracy : 1.0
+ Sample: [5.1 3.5 1.4 0.2]  Actual-label: 0  Predicted-label: 0
+Classification Accuracy : 1.0
+ Sample: [5.1 3.8 1.5 0.3]  Actual-label: 0  Predicted-label: 0
+Classification Accuracy : 1.0
+ Sample: [5.4 3.9 1.7 0.4]  Actual-label: 0  Predicted-label: 0
+Classification Accuracy : 1.0
+ Sample: [6.  3.  4.8 1.8]  Actual-label: 2  Predicted-label: 2
+Classification Accuracy : 1.0
+
+
+
+           ......................................................................................................................
+
+
+
+
+
+
+PROGRAM 9:Implement the non-parametric Locally Weighted Regression algorithm in order to fit data points. Select appropriate data set for your experiment and draw graphs.
+
+CODE :
+
+import matplotlib.pyplot as plt
+import pandas as pd
+import numpy as np
+
+def kernel(point, xmat, k):
+    m,n = np.shape(xmat)
+    weights = np.mat(np.eye((m)))
+    for j in range(m):
+        diff = point - X[j]
+        weights[j,j] = np.exp(diff*diff.T/(-2.0*k**2))
+    return weights
+
+def localWeight(point, xmat, ymat, k):
+    wei = kernel(point,xmat,k)
+    W = (X.T*(wei*X)).I*(X.T*(wei*ymat.T))
+    return W
+def localWeightRegression(xmat, ymat, k):
+    m,n = np.shape(xmat)
+    ypred = np.zeros(m)
+    for i in range(m):
+        ypred[i] = xmat[i]*localWeight(xmat[i],xmat,ymat,k)
+    return ypred
+
+# load data points
+data = pd.read_csv(r'C:\Users\91974\Downloads\Non-Parametric.csv')
+bill = np.array(data.total_bill)
+tip = np.array(data.tip)
+
+#preparing and add 1 in bill
+mbill = np.mat(bill) 
+mtip = np.mat(tip)
+m= np.shape(mbill)[1]
+one = np.mat(np.ones(m))
+X = np.hstack((one.T,mbill.T))
+
+#set k here
+ypred = localWeightRegression(X,mtip,2)
+SortIndex = X[:,1].argsort(0)
+xsort = X[SortIndex][:,0]
+
+fig = plt.figure()
+ax = fig.add_subplot(1,1,1)
+ax.scatter(bill,tip, color='green')
+ax.plot(xsort[:,1],ypred[SortIndex], color = 'red', linewidth=10)
+plt.xlabel('Total bill')
+plt.ylabel('Tip')
+plt.show();
+
+
+
+
+	What is A* algorithm.
+	What is the formula used in A* algorithm.
+	What is AO* algorithm.
+	What is the formula used in AO* algorithm.
+	What is Artificial Intelligence.
+	What is Machine Learning.
+	Define Supervised learning.
+	Define Unsupervised learning.
+	Define Reinforcement learning.
+	What is Classification.
+	What is clustering.
+	What do you mean by hypothesis.
+	What is Gain.
+	What is Entropy.
+	How k-means clustering is different from KNN.
+	State Bayes Theorem.
+	Define Bias.
+	What is learning rate? Why it is needed.
+	Why KNN algorithm is known as lazy learning algorithm.
+	What is K-means clustering algorithm.
+	What are the advantages and disadvantages of K-means clustering algorithm.
+	What is K in KNN algorithm.
+	What are the advantages and disadvantages of KNN algorithm.
+	What are the some applications of K-Means clustering.
+	What is the difference between training data and test data.
+	What is naïve in naïve bayes algorithm.
+
