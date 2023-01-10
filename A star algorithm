@@ -1,4 +1,3 @@
-5. SOLUTION:
 
 def aStarAlgo(start_node, stop_node):
          
